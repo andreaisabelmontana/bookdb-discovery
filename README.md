@@ -4,7 +4,7 @@ An interactive static showcase for **BookDB**, a full-stack book discovery platf
 collaborative filtering, semantic search, and a conversational AI to recommend books you'll
 actually want to read.
 
-🔗 **Live site:** https://andreaisabelmontana.github.io/bookdb/
+🔗 **Live site:** https://andreaisabelmontana.github.io/bookdb-discovery/
 
 ## What it does
 - **Conversational recommendations** — tell the chatbot your mood; it rewrites the query and routes tools (search, recommend, review RAG).

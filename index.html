@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BookDB · Find your next favourite book</title>
+<meta name="description" content="BookDB is a full-stack book discovery platform combining collaborative filtering, semantic search, and a conversational AI — fusing multiple ML models with weighted scoring and RRF reranking. An interactive project showcase." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --ink:#171410;
+    --paper:#f6f2ea;
+    --paper-2:#ede7da;
+    --line:#ddd2bf;
+    --accent:#1d6b66;     /* deep teal */
+    --accent-2:#a8642a;
+    --muted:#6c6456;
+    --shadow:0 1px 0 rgba(0,0,0,.04), 0 18px 40px -28px rgba(23,20,16,.5);
+    --r:14px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--paper);color:var(--ink);
+    font-family:"Inter",system-ui,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  h1,h2,h3{font-family:"Fraunces",Georgia,serif;font-weight:500;line-height:1.08;letter-spacing:-.01em}
+  a{color:var(--accent);text-decoration:none}
+  code,.mono{font-family:"JetBrains Mono",monospace}
+
+  header.bar{position:sticky;top:0;z-index:30;background:rgba(246,242,234,.85);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .bar .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+  .brand{font-family:"Fraunces",serif;font-size:1.05rem;display:flex;align-items:center;gap:9px}
+  nav.links a{color:var(--muted);font-size:.86rem;margin-left:22px;font-weight:500}
+  nav.links a:hover{color:var(--ink)}
+  @media(max-width:760px){nav.links{display:none}}
+
+  .hero{padding:84px 0 60px;border-bottom:1px solid var(--line)}
+  .kicker{font-family:"JetBrains Mono",monospace;font-size:.74rem;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--accent);margin:0 0 18px}
+  .hero h1{font-size:clamp(2.4rem,5.4vw,4.2rem);margin:0 0 20px;max-width:15ch}
+  .hero p.lede{font-size:1.18rem;max-width:62ch;color:#26221b;margin:0 0 30px}
+  .cta{display:flex;gap:12px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:999px;
+    font-weight:600;font-size:.9rem;border:1px solid var(--ink);background:var(--ink);color:var(--paper);
+    transition:transform .15s ease}
+  .btn:hover{transform:translateY(-2px)}
+  .btn.ghost{background:transparent;color:var(--ink)}
+
+  /* ---- chat demo ---- */
+  .demo{margin-top:52px;background:#fff;border:1px solid var(--line);border-radius:var(--r);
+    box-shadow:var(--shadow);overflow:hidden}
+  .demo .top{display:flex;align-items:center;gap:8px;padding:13px 18px;border-bottom:1px solid var(--line);background:var(--paper-2)}
+  .demo .top .t{font-family:"Fraunces",serif;font-size:1rem}
+  .demo .top .dot{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+  .chat{padding:18px;display:flex;flex-direction:column;gap:14px;max-height:420px;overflow:auto}
+  .msg{max-width:88%}
+  .msg.me{align-self:flex-end;background:var(--accent);color:#fff;padding:9px 14px;border-radius:14px 14px 4px 14px;font-size:.9rem}
+  .msg.bot{align-self:flex-start;width:100%}
+  .bot .say{font-size:.9rem;margin-bottom:10px}
+  .recs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  @media(max-width:680px){.recs{grid-template-columns:1fr}}
+  .book{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff}
+  .cover{aspect-ratio:3/4;display:grid;place-items:center;color:#fff;font-size:1.6rem;text-align:center;padding:8px}
+  .binfo{padding:8px 10px}
+  .binfo .bt{font-weight:600;font-size:.84rem;line-height:1.2}
+  .binfo .ba{font-size:.74rem;color:var(--muted)}
+  .binfo .why{font-size:.74rem;color:#4a4234;margin-top:5px}
+  .binfo .score{font-family:"JetBrains Mono",monospace;font-size:.64rem;color:var(--accent);font-weight:700;margin-top:5px;display:block}
+  .strat{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .strat span{font-family:"JetBrains Mono",monospace;font-size:.6rem;padding:2px 8px;border-radius:5px;background:var(--paper-2);border:1px solid var(--line);color:var(--muted)}
+  .typing{display:flex;gap:4px;padding:6px 0}
+  .typing i{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:bb 1s infinite}
+  .typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+  @keyframes bb{0%,100%{opacity:.3;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
+  .composer{display:flex;gap:8px;padding:14px 18px;border-top:1px solid var(--line);background:var(--paper-2);flex-wrap:wrap}
+  .composer input{flex:1;min-width:180px;border:1px solid var(--line);border-radius:999px;padding:9px 14px;font-family:inherit;font-size:.88rem;outline:none}
+  .composer button{border:none;background:var(--accent);color:#fff;font-weight:600;font-size:.85rem;padding:9px 18px;border-radius:999px;cursor:pointer}
+  .prompts{display:flex;gap:6px;flex-wrap:wrap;padding:10px 18px 0}
+  .prompts button{font-size:.74rem;padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:#fff;cursor:pointer}
+
+  section{padding:74px 0;border-bottom:1px solid var(--line)}
+  .eyebrow{font-family:"JetBrains Mono",monospace;font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+  h2{font-size:clamp(1.8rem,3.6vw,2.6rem);margin:0 0 14px}
+  .section-lede{max-width:62ch;color:#2b271f;font-size:1.05rem}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:34px}
+  @media(max-width:680px){.stats{grid-template-columns:1fr}}
+  .stat{background:var(--ink);color:var(--paper);border-radius:var(--r);padding:24px}
+  .stat .num{font-family:"Fraunces",serif;font-size:2.2rem;line-height:1}
+  .stat .lab{font-size:.8rem;color:#d8cdba;margin-top:6px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:36px}
+  @media(max-width:760px){.grid3{grid-template-columns:1fr}}
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:24px;box-shadow:var(--shadow)}
+  .card .ic{font-size:1.4rem}.card h3{font-size:1.1rem;margin:8px 0 6px}.card p{margin:0;font-size:.9rem;color:#433c2f}
+  .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px}
+  .chip{padding:8px 16px;border-radius:999px;border:1px solid var(--line);background:#fff;font-size:.85rem;font-weight:500}
+  footer{padding:48px 0 70px}
+  footer .wrap{color:var(--muted);font-size:.85rem}
+  .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
+  .reveal.in{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="wrap">
+    <div class="brand">📚 BookDB</div>
+    <nav class="links">
+      <a href="#how">How it works</a>
+      <a href="#scale">Scale</a>
+      <a href="#stack">Stack</a>
+    </nav>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="wrap">
+    <p class="kicker">Recommender Systems · Conversational AI · Full-Stack</p>
+    <h1>Find your next favourite book.</h1>
+    <p class="lede">BookDB blends collaborative filtering, semantic search, and a conversational AI. Tell the chatbot what you're in the mood for and get personalised picks ranked by several ML models — fused with weighted scoring and RRF reranking — plus the reasons why, drawn from real reviews.</p>
+    <div class="cta">
+      <a class="btn" href="#how">How it works →</a>
+      <a class="btn ghost" href="#stack">The stack</a>
+    </div>
+
+    <div class="demo" id="demo">
+      <div class="top"><span class="dot"></span><span class="t">BookDB chat</span></div>
+      <div class="chat" id="chat"></div>
+      <div class="prompts" id="prompts">
+        <span style="font-size:.72rem;color:var(--muted);align-self:center">try:</span>
+      </div>
+      <div class="composer">
+        <input id="q" type="text" placeholder="What are you in the mood for?" aria-label="message" />
+        <button id="send">Ask</button>
+      </div>
+    </div>
+    <p style="font-size:.8rem;color:var(--muted);margin-top:10px">↑ A scripted illustration of the chat recommender — results are from a small sample catalog.</p>
+  </div>
+</div>
+
+<section id="how">
+  <div class="wrap reveal">
+    <p class="eyebrow">01 — How it works</p>
+    <h2>Many models, one ranked list.</h2>
+    <p class="section-lede">Unlike engines that recycle the same bestsellers, BookDB learns from your reading history and taste profile. Several strategies run in parallel and their outputs are fused for the most relevant result.</p>
+    <div class="grid3">
+      <div class="card"><div class="ic">🤝</div><h3>Collaborative filtering</h3><p>BPR, SAR, and NCF models trained on reading interactions.</p></div>
+      <div class="card"><div class="ic">🧭</div><h3>Semantic search</h3><p>Vector similarity over book embeddings for "books like this".</p></div>
+      <div class="card"><div class="ic">🔀</div><h3>Fusion + RRF</h3><p>Weighted scoring and reciprocal-rank fusion combine every signal.</p></div>
+      <div class="card"><div class="ic">💬</div><h3>Conversational AI</h3><p>An LLM rewrites your query for retrieval and routes tools (search, recommend, review RAG).</p></div>
+      <div class="card"><div class="ic">📖</div><h3>Explains itself</h3><p>Tells you why it recommends a book, pulling from real user reviews.</p></div>
+      <div class="card"><div class="ic">🔌</div><h3>MCP server</h3><p>A Go-based Model Context Protocol server exposes tools to Claude Desktop, Cursor, etc.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="scale">
+  <div class="wrap reveal">
+    <p class="eyebrow">02 — Scale</p>
+    <h2>Built on a lot of reading.</h2>
+    <div class="stats">
+      <div class="stat"><div class="num">229M</div><div class="lab">Goodreads interactions</div></div>
+      <div class="stat"><div class="num">2.3M</div><div class="lab">books in the catalogue</div></div>
+      <div class="stat"><div class="num">BPR · SAR · NCF</div><div class="lab">models fused with RRF</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="stack">
+  <div class="wrap reveal">
+    <p class="eyebrow">03 — Stack</p>
+    <h2>Built with.</h2>
+    <div class="chips">
+      <span class="chip">🐍 Python (bookdb library)</span>
+      <span class="chip">⚡ FastAPI (REST + SSE)</span>
+      <span class="chip">⚛️ React</span>
+      <span class="chip">🧮 BPR · SAR · NCF</span>
+      <span class="chip">🧭 Vector DB</span>
+      <span class="chip">📓 Marimo · MLflow</span>
+      <span class="chip">🐹 Go MCP server</span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    BookDB · an interactive project showcase, built from scratch.
+    The chat demo uses a small sample catalog; titles are real, blurbs are illustrative.
+  </div>
+</footer>
+
+<script>
+  const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}})},{threshold:.15});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+  const COVERS=['linear-gradient(150deg,#1d6b66,#3fa89f)','linear-gradient(150deg,#7a2f3a,#c4622a)','linear-gradient(150deg,#2a3a6a,#5a6fd6)','linear-gradient(150deg,#3a2f5a,#8a5fb0)','linear-gradient(150deg,#5a4a1f,#a8862a)'];
+  const BUCKETS={
+    scifi:{kw:['sci-fi','scifi','science fiction','space','dystopia','aliens','1970s sci'],say:"For something cerebral and out-of-this-world, here are three sci-fi picks:",books:[
+      {t:'Dune',a:'Frank Herbert',why:'Epic world-building and political intrigue — readers who love immersive sci-fi rate it highest.',s:0.94},
+      {t:'The Left Hand of Darkness',a:'Ursula K. Le Guin',why:'A thoughtful, character-driven classic for fans of ideas over explosions.',s:0.90},
+      {t:'Roadside Picnic',a:'Strugatsky',why:'That obscure, eerie 1970s sci-fi feel you asked for.',s:0.86}]},
+    cozy:{kw:['cozy','cosy','feel','comfort','wholesome','warm','happy','uplifting'],say:"Something warm and comforting? These are crowd favourites:",books:[
+      {t:'The House in the Cerulean Sea',a:'TJ Klune',why:'Found-family warmth that reviewers call a literary hug.',s:0.93},
+      {t:'A Man Called Ove',a:'Fredrik Backman',why:'Grumpy-but-tender; readers who want feel-good love it.',s:0.89},
+      {t:'Legends & Lattes',a:'Travis Baldree',why:'Low-stakes, cozy fantasy — perfect comfort read.',s:0.85}]},
+    thriller:{kw:['thriller','mystery','suspense','crime','twist','whodunit','detective'],say:"Want to be kept guessing? Try these twisty reads:",books:[
+      {t:'The Silent Patient',a:'Alex Michaelides',why:'A twist readers say they never saw coming.',s:0.92},
+      {t:'Gone Girl',a:'Gillian Flynn',why:'Sharp, unreliable narration loved by thriller fans.',s:0.90},
+      {t:'And Then There Were None',a:'Agatha Christie',why:'The blueprint for the modern whodunit.',s:0.87}]},
+    literary:{kw:['literary','sad','beautiful','deep','character','prose','emotional'],say:"For something literary and moving, consider:",books:[
+      {t:'Normal People',a:'Sally Rooney',why:'Quiet, precise prose about love and class.',s:0.91},
+      {t:'A Little Life',a:'Hanya Yanagihara',why:'Devastating and deeply character-driven.',s:0.88},
+      {t:'Beloved',a:'Toni Morrison',why:'A towering literary classic, widely revered.',s:0.86}]},
+  };
+  const DEFAULT={say:"Here are a few highly-rated picks across genres to get you started:",books:[
+    BUCKETS.scifi.books[0],BUCKETS.cozy.books[0],BUCKETS.thriller.books[0]]};
+
+  const chat=document.getElementById('chat'), qIn=document.getElementById('q');
+  const PROMPTS=['something like an obscure 1970s sci-fi novel','a cozy feel-good read','a thriller with a big twist','something literary and sad'];
+  const promptsEl=document.getElementById('prompts');
+  PROMPTS.forEach(p=>{const b=document.createElement('button');b.textContent=p;b.dataset.p=p;promptsEl.appendChild(b);});
+
+  function pick(text){
+    const t=text.toLowerCase();
+    for(const k in BUCKETS){ if(BUCKETS[k].kw.some(w=>t.includes(w))) return BUCKETS[k]; }
+    return DEFAULT;
+  }
+  function bookCard(b,i){
+    return `<div class="book"><div class="cover" style="background:${COVERS[i%COVERS.length]}">📕</div>
+      <div class="binfo"><div class="bt">${b.t}</div><div class="ba">${b.a}</div>
+      <div class="why">“${b.why}”</div><span class="score">match ${b.s.toFixed(2)}</span></div></div>`;
+  }
+  function send(text){
+    if(!text.trim()) return;
+    const me=document.createElement('div'); me.className='msg me'; me.textContent=text; chat.appendChild(me);
+    const bot=document.createElement('div'); bot.className='msg bot';
+    bot.innerHTML='<div class="typing"><i></i><i></i><i></i></div>'; chat.appendChild(bot); chat.scrollTop=chat.scrollHeight;
+    const res=pick(text);
+    setTimeout(()=>{
+      bot.innerHTML=`<div class="say">${res.say}</div><div class="recs">${res.books.map(bookCard).join('')}</div>
+        <div class="strat"><span>query rewrite</span><span>BPR</span><span>vector similarity</span><span>RRF rerank</span></div>`;
+      chat.scrollTop=chat.scrollHeight;
+    },900);
+  }
+  document.getElementById('send').addEventListener('click',()=>{send(qIn.value);qIn.value='';});
+  qIn.addEventListener('keydown',e=>{if(e.key==='Enter'){send(qIn.value);qIn.value='';}});
+  promptsEl.addEventListener('click',e=>{const b=e.target.closest('button[data-p]');if(!b)return;send(b.dataset.p);});
+  send('something like an obscure 1970s sci-fi novel');
+</script>
+</body>
+</html>
